@@ -10,7 +10,9 @@ SCREEN_HEIGHT = 600
 
 PLAYER_SPEED = 8 
 BULLET_SPEED = 10
+ENEMY_SPEED = 2
 PLAYER_POS = (600, 450)
+
 
 
 #子弹类
@@ -70,6 +72,19 @@ class Player(pygame.sprite.Sprite):
         else:
             self.rect.right += self.speed
 
+#敌机类
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self, enemy_img, enemy_down_imgs, init_pos):
+        super().__init__()
+        self.image = enemy_img
+        self.down_imgs = enemy_down_imgs
+        self.rect = self.image.get_rect()
+        self.rect.topleft = init_pos
+        self.speed = ENEMY_SPEED
+
+    def move(self):
+        self.rect.top += self.speed
+        
 
 
 
@@ -77,9 +92,9 @@ class Player(pygame.sprite.Sprite):
 pygame.init()
 
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-
 pygame.display.set_caption('Air War')
 
+#图片载入
 background = pygame.image.load('resources/image/background.png').convert()
 game_over = pygame.image.load('resources/image/gameover.png')
 plane_img = pygame.image.load('resources/image/shoot.png')
@@ -96,33 +111,39 @@ player_rect.append(pygame.Rect(432, 624, 102, 126))
 
 
 
-# 子弹图片
+#子弹图片
 bullet_rect = pygame.Rect(1004, 987, 9, 21)
 bullet_img = plane_img.subsurface(bullet_rect)
 
-#敌机1图片
+#敌机图片
 
-enemy1_rect = pygame.Rect(534, 612, 57, 43)
-enemy1_img = plane_img.subsurface(enemy1_rect)
-enemy1_down_imgs = []
-enemy1_down_imgs.append(plane_img.subsurface(pygame.Rect(267, 347, 57, 43)))
-enemy1_down_imgs.append(plane_img.subsurface(pygame.Rect(873, 697, 57, 43)))
-enemy1_down_imgs.append(plane_img.subsurface(pygame.Rect(267, 296, 57, 43)))
-enemy1_down_imgs.append(plane_img.subsurface(pygame.Rect(930, 697, 57, 43)))
+enemy_rect = pygame.Rect(534, 612, 57, 43)
+enemy_img = plane_img.subsurface(enemy_rect)
+enemy_down_imgs = []
+enemy_down_imgs.append(plane_img.subsurface(pygame.Rect(267, 347, 57, 43)))
+enemy_down_imgs.append(plane_img.subsurface(pygame.Rect(873, 697, 57, 43)))
+enemy_down_imgs.append(plane_img.subsurface(pygame.Rect(267, 296, 57, 43)))
+enemy_down_imgs.append(plane_img.subsurface(pygame.Rect(930, 697, 57, 43)))
 
+enemies = pygame.sprite.Group()
+enemies_down = pygame.sprite.Group()
 
+#创建player对象
 player = Player(plane_img, player_rect, PLAYER_POS)
 
-shoot_frequency = 0
-enemy_frequency = 0
+#频率计数器
+shoot_counter = 0
+enemy_counter = 0
 
-clock = pygame.time.Clock()
-
-running = True
 
 #主循环
-while True:
 
+clock = pygame.time.Clock()
+running = True
+
+while running:
+
+    #限定帧数
     clock.tick(60)
 
     #绘制背景
@@ -137,9 +158,7 @@ while True:
             screen.blit(background, (i * bgw, j * bgh))
     
 
-
-
-    #显示玩家飞机
+    #玩家飞机绘制
     if not player.is_hit:
         screen.blit(player.image[player.img_index], player.rect)
         player.img_index += 1
@@ -147,26 +166,42 @@ while True:
 
 
 
-    #子弹处理
-
+    #子弹生成
     if not player.is_hit:
-        if shoot_frequency == 15:
+        if shoot_counter == 15:
             player.shoot(bullet_img)
-        shoot_frequency += 1
-        if shoot_frequency > 15:
-            shoot_frequency = 0
+        shoot_counter += 1
+        if shoot_counter > 15:
+            shoot_counter = 0
 
+    #子弹动作
     for bullet in player.bullets:
         bullet.move()
         if bullet.rect.bottom < 0:
             player.bullets.remove(bullet)
 
+    #子弹绘制
     player.bullets.draw(screen)
 
 
 
-    #敌机处理
+    #敌机生成
+    if enemy_counter == 50:
+        enemy_pos = (random.randint(0, SCREEN_WIDTH - enemy_rect.width), 0)
+        enemy = Enemy(enemy_img, enemy_down_imgs, enemy_pos)
+        enemies.add(enemy)
+    enemy_counter += 1
+    if enemy_counter > 50:
+        enemy_counter = 0
 
+    #敌机动作
+    for enemy in enemies:
+        enemy.move()
+        if enemy.rect.top > SCREEN_HEIGHT:
+            enemies.remove(enemy)
+
+    #敌机绘制
+    enemies.draw(screen)
 
 
 
