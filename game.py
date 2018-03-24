@@ -231,6 +231,7 @@ def main():
                 if pygame.sprite.collide_mask(bullet, enemy):
                     enemies_exp.add(enemy)
                     enemies.remove(enemy)
+                    score += 1
                     break
             if enemy.rect.top > SCREEN_HEIGHT:
                 enemies.remove(enemy)
@@ -238,16 +239,15 @@ def main():
         for enemy in enemies_exp:
             if enemy.exp():
                 enemies_exp.remove(enemy)
-                score += 1
 
         #敌机绘制
         enemies.draw(screen)
 
         #分数绘制
-        score_font = pygame.font.Font(None, 48)
+        score_font = pygame.font.SysFont('arialblack', 36)
         score_text = score_font.render(str(score), True, (127, 127, 127))
         score_rect = score_text.get_rect()
-        score_rect.topleft = (25, 25)
+        score_rect.topleft = (25, 20)
         screen.blit(score_text, score_rect)
 
 
@@ -275,8 +275,8 @@ def main():
 
 
     #绘制得分
-    font = pygame.font.Font(None, 36)
-    font_big = pygame.font.Font(None, 64)
+    font = pygame.font.SysFont('arialblack', 24)
+    font_big = pygame.font.SysFont('arialblack', 50)
     text = font.render('Score: '+ str(score), True, (127, 127, 127))
     game_over = font_big.render('Game Over', True, (60, 60, 60))
     text_rect = text.get_rect()
@@ -286,7 +286,7 @@ def main():
     text_rect.centerx = centerx
     text_rect.centery = centery + 30
     game_over_rect.centerx = centerx
-    game_over_rect.centery = centery - 20
+    game_over_rect.centery = centery - 30
     screen.blit(text, text_rect)
     screen.blit(game_over, game_over_rect)
 
